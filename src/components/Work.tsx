@@ -1,34 +1,48 @@
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import autoAnimate from "@formkit/auto-animate";
-import { useEffect, useRef } from "react";
+import type { Technology, Work as TypeWork } from "@prisma/client";
+import Image from "next/image";
 
-export default function Work() {
+type Props = {
+  title: TypeWork["title"];
+  description: TypeWork["description"];
+  image: TypeWork["image"];
+  technologies: Technology[];
+};
+
+export default function Work({
+  title,
+  description,
+  image,
+  technologies,
+}: Props) {
   return (
-    <div className="max-w-sm overflow-hidden rounded bg-zinc-200 shadow-lg">
-      <img
-        className="w-full"
-        src="/work/image1.png"
-        alt="Sunset in the mountains"
+    <div className="flex grow flex-col overflow-hidden rounded bg-zinc-200 shadow-lg">
+      <Image
+        src={`/work/${image ?? ""}`}
+        alt={title}
+        width={1000}
+        height={1000}
+        quality={100}
+        className="h-full max-h-[250px] object-cover"
       />
-      <div className="px-6 py-4">
-        <div className="mb-2 text-xl font-bold">The Coldest Sunset</div>
-        <p className="text-base text-gray-700">
-          Lorem ipsum dolor sit amet, consectetur adipisicing elit. Voluptatibus
-          quia, nulla! Maiores et perferendis eaque, exercitationem praesentium
-          nihil.
+      <div className="py-4">
+        <div className="mb-2 px-6 text-xl font-bold">{title}</div>
+        <p className="max-h-[125px] overflow-y-auto break-words px-6 text-gray-700">
+          {description}{" "}
         </p>
-      </div>
-      <div className="px-6 pb-2 pt-4">
-        <span className="mb-2 mr-2 inline-block rounded-full bg-gray-300 px-3 py-1 text-sm font-semibold text-gray-700">
-          Next.js
-        </span>
-        <span className="mb-2 mr-2 inline-block rounded-full bg-gray-300 px-3 py-1 text-sm font-semibold text-gray-700">
-          React.js
-        </span>
-        <span className="mb-2 mr-2 inline-block rounded-full bg-gray-300 px-3 py-1 text-sm font-semibold text-gray-700">
-          TypeScript
-        </span>
+        <div className="px-6 pb-2 pt-4">
+          {technologies?.map((e) => {
+            return (
+              <span
+                key={e.id}
+                className="mb-2 mr-2 inline-block rounded-full bg-gray-300 px-3 py-1 text-sm font-semibold text-gray-700"
+              >
+                {e.name}
+              </span>
+            );
+          })}
+        </div>
       </div>
     </div>
   );

@@ -1,3 +1,6 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/ban-ts-comment */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 /* eslint-disable @typescript-eslint/no-unsafe-argument */
 /* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable @typescript-eslint/no-explicit-any */
@@ -15,12 +18,24 @@ import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import classNames from "classnames";
+import base64 from "base-64";
+import { buffer } from "stream/consumers";
+
 type FormData = {
   title: string;
   description: string;
   technologies: string[];
-  file: Blob | null;
+  file: File | null;
 };
+
+function getBase64(file: File) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.readAsDataURL(file);
+    reader.onload = () => resolve(reader.result);
+    reader.onerror = (error) => reject(error);
+  });
+}
 
 export default function CreateWork({
   user,
@@ -29,7 +44,7 @@ export default function CreateWork({
 }) {
   const { data: tech } = api.technologies.get.useQuery({});
 
-  const [parent, enableAnimations] = useAutoAnimate();
+  const [parent, _] = useAutoAnimate();
 
   const [form, setForm] = useState<FormData>({
     title: "",
@@ -37,6 +52,8 @@ export default function CreateWork({
     technologies: [],
     file: null,
   });
+
+  const { mutate } = api.work.insert.useMutation();
 
   const [errors, setErrors] = useState<{
     title: string;
@@ -80,6 +97,16 @@ export default function CreateWork({
     if (form.file == null) {
       e.file = "Image is required";
     }
+    if (
+      !(
+        form.file?.type == "image/png" ||
+        form.file?.type == "image/jpeg" ||
+        form.file?.type == "image/jpg" ||
+        form.file?.type == "image/webp"
+      )
+    ) {
+      e.file = "Image must be of type PNG, JPG/JPEG or WEBP";
+    }
 
     setErrors(e);
     return Object.values(e).every((i) => i == "");
@@ -90,9 +117,6 @@ export default function CreateWork({
       <main className="flex min-h-screen w-full flex-col items-center bg-slate-800">
         <Wrapper className="flex items-center justify-center">
           <Header user={user} />
-          <h1 className="mb-12 bg-gradient-to-t from-slate-300 to-white bg-clip-text text-6xl font-bold tracking-tighter text-transparent">
-            Add Work
-          </h1>
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -102,14 +126,17 @@ export default function CreateWork({
                 technologies: "",
                 file: "",
               });
-              // if (validateForm()) {
-
-              // }
-              //write to /public/images the form file
-
-              if (form.file != null) {
-                //move the file
-                const direction = `../../public/images`;
+              if (validateForm()) {
+                //@ts-ignore
+                void getBase64(form.file).then((e) => {
+                  mutate({
+                    title: form.title,
+                    description: form.description,
+                    technologies: form.technologies,
+                    fileName: form.file?.name ?? "",
+                    base64String: e as string,
+                  });
+                });
               }
             }}
             className="w-full max-w-lg rounded bg-slate-800 p-6 px-8"
@@ -293,8 +320,14 @@ export default function CreateWork({
                 {form.file && (
                   <div className="mt-2 flex w-full flex-row items-center justify-between gap-2 rounded bg-gray-200 p-2 px-4">
                     <p>
-                      {form.file?.path?.substring(0, 50)}
-                      {[...form.file?.path]?.length > 50 && "..."}
+                      {
+                        //@ts-ignore
+                        form.file?.path?.substring(0, 50)
+                      }
+                      {
+                        //@ts-ignore
+                        [...form.file?.path]?.length > 50 && "..."
+                      }
                     </p>
                     <button
                       onClick={() => {
