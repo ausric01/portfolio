@@ -31,7 +31,7 @@ export default function Work({
         <p className="max-h-[125px] overflow-y-auto break-words px-6 text-gray-700">
           {description}{" "}
         </p>
-        <div className="px-6 pb-2 pt-4">
+        <div className="mt-4 px-6 pb-2 pt-4">
           {technologies?.map((e) => {
             return (
               <span

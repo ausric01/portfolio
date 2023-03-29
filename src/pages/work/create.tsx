@@ -18,8 +18,7 @@ import { useCallback, useState } from "react";
 import { useDropzone } from "react-dropzone";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import classNames from "classnames";
-import base64 from "base-64";
-import { buffer } from "stream/consumers";
+import { useRouter } from "next/router";
 
 type FormData = {
   title: string;
@@ -43,8 +42,8 @@ export default function CreateWork({
   user: Session["user"];
 }) {
   const { data: tech } = api.technologies.get.useQuery({});
-
   const [parent, _] = useAutoAnimate();
+  const router = useRouter();
 
   const [form, setForm] = useState<FormData>({
     title: "",
@@ -129,13 +128,27 @@ export default function CreateWork({
               if (validateForm()) {
                 //@ts-ignore
                 void getBase64(form.file).then((e) => {
-                  mutate({
-                    title: form.title,
-                    description: form.description,
-                    technologies: form.technologies,
-                    fileName: form.file?.name ?? "",
-                    base64String: e as string,
-                  });
+                  mutate(
+                    {
+                      title: form.title,
+                      description: form.description,
+                      technologies: form.technologies,
+                      fileName: form.file?.name ?? "",
+                      base64String: e as string,
+                    },
+                    {
+                      onSuccess: (e: any) => {
+                        void router.push(
+                          `/?type=success&message=Successfully created new Work`
+                        );
+                      },
+                      onError: (e: any) => {
+                        void router.push(
+                          `/?type=error&message=Error creating new Work`
+                        );
+                      },
+                    }
+                  );
                 });
               }
             }}

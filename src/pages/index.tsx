@@ -10,12 +10,13 @@ import Work from "~/components/Work";
 import Footer from "~/components/containers/Footer";
 import { getServerAuthSession } from "~/server/auth";
 import { type NextPage } from "next";
-import { useSession } from "next-auth/react";
 import { type Session } from "next-auth";
-import autoAnimate from "@formkit/auto-animate";
-import { useRef, useEffect, useState } from "react";
+import { useState } from "react";
 import { useAutoAnimate } from "@formkit/auto-animate/react";
 import classNames from "classnames";
+import { motion } from "framer-motion";
+import { useRouter } from "next/router";
+import FeedbackModal from "~/components/modals/FeedbackModal";
 
 export default function Home({
   user,
@@ -25,6 +26,7 @@ export default function Home({
   const { data } = api.work.get.useQuery({});
   const [parent, _] = useAutoAnimate();
   const [currentPage, setCurrentPages] = useState(1);
+  const router = useRouter();
 
   const numberPages = Math.ceil((data?.work?.length ?? 0) / 6);
   console.log(currentPage);
@@ -34,7 +36,7 @@ export default function Home({
         <Wrapper>
           <Header user={user} />
           <h1 className="pb-6 pt-12 text-5xl font-medium text-gray-200">
-            Projects
+            My Projects
           </h1>
           <div
             ref={parent}
@@ -50,14 +52,15 @@ export default function Home({
           </div>
           {data?.work && data?.work?.length > 0 && (
             <div className="mb-8 flex w-full justify-center justify-self-end">
-              <button
+              <motion.button
+                whileTap={{ scale: 0.9 }}
                 className="rounded-md bg-gray-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-700"
                 onClick={() => {
                   currentPage > 1 && setCurrentPages((e) => e - 1);
                 }}
               >
                 Previous
-              </button>
+              </motion.button>
               {Array.from({ length: numberPages }).map((_, i) => {
                 return (
                   <button
@@ -78,17 +81,30 @@ export default function Home({
                   </button>
                 );
               })}
-              <button
+              <motion.button
+                whileTap={{ scale: 0.9 }}
                 className="ml-2 rounded-md bg-gray-800 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-gray-700"
                 onClick={() => {
                   currentPage != numberPages && setCurrentPages((e) => e + 1);
                 }}
               >
                 Next
-              </button>
+              </motion.button>
             </div>
           )}
           <Footer user={user} />
+          {router.query?.type == "success" && (
+            <FeedbackModal
+              type={"success"}
+              message={(router.query?.message as string) ?? ""}
+            />
+          )}
+          {router.query?.type == "error" && (
+            <FeedbackModal
+              type={"success"}
+              message={(router.query?.message as string) ?? ""}
+            />
+          )}
         </Wrapper>
       </main>
     </Page>
