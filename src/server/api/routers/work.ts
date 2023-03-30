@@ -12,6 +12,41 @@ import {
 } from "~/server/api/trpc";
 
 export const workRouter = createTRPCRouter({
+  getOne: publicProcedure
+    .input(
+      z.object({
+        id: z.string().cuid().optional(),
+      })
+    )
+    .query(async ({ ctx, input }) => {
+      const { id } = input;
+      try {
+        const work = await ctx.prisma.work.findUnique({
+          where: {
+            id,
+          },
+          include: {
+            technologies: true,
+          },
+        });
+        if (work) {
+          return {
+            work,
+            error: null,
+          };
+        } else {
+          return {
+            work: null,
+            error: "Work not found",
+          };
+        }
+      } catch (e: any) {
+        return {
+          work: null,
+          error: e.message,
+        };
+      }
+    }),
   get: publicProcedure
     .input(
       z.object({

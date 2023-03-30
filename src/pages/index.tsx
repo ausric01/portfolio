@@ -32,7 +32,7 @@ export default function Home({
   const router = useRouter();
 
   const numberPages = Math.ceil((data?.work?.length ?? 0) / 6);
-  console.log(currentPage);
+
   return (
     <Page title="Home">
       <main className="flex min-h-screen w-full flex-col items-center bg-slate-800">
@@ -43,7 +43,7 @@ export default function Home({
           </h1>
           <div
             ref={parent}
-            className="grid grid-flow-row gap-4 p-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
+            className="relative grid grid-flow-row gap-4 p-8 sm:grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
           >
             {data?.work
               ?.filter((_, i) => {
@@ -52,8 +52,9 @@ export default function Home({
               .map((work) => {
                 return (
                   <Work
-                    admin={user?.role === Role.ADMIN}
                     key={work.id}
+                    admin={user?.role === Role.ADMIN}
+                    onEdit={() => void router.push(`/work/${work.id}`)}
                     onDelete={() =>
                       deleteWork(
                         { id: work.id },
@@ -70,14 +71,14 @@ export default function Home({
               })}
           </div>
           {data?.work?.length == 0 && (
-            <>
+            <div className="absolute flex h-full w-full flex-col items-center justify-center">
               <motion.svg
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
                 viewBox="0 0 24 24"
                 strokeWidth={0.5}
                 stroke="currentColor"
-                className="h-64 w-64 text-white"
+                className="h-64 w-64 text-center text-white"
               >
                 <motion.path
                   strokeLinecap="round"
@@ -99,14 +100,14 @@ export default function Home({
                 />
               </motion.svg>
 
-              <h2 className="pt-4 text-3xl font-medium tracking-tight text-white">
+              <h2 className="px-4 pt-4 text-center text-3xl font-medium tracking-tight text-white">
                 This Page Is Under Construction
               </h2>
-              <p className="tracking-wide text-white">
+              <p className="px-4 text-center tracking-wide text-white">
                 Check back later to see my list of projects that I&apos;ve
                 worked on.
               </p>
-            </>
+            </div>
           )}
           {data?.work && data?.work?.length > 0 && (
             <div className="mb-8 flex w-full justify-center justify-self-end">

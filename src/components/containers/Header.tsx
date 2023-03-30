@@ -9,7 +9,7 @@ type Props = {
 
 export default function Header({ user }: Props) {
   return (
-    <header className="sticky bottom-full flex w-full items-center justify-center gap-1 rounded-b-xl border-t-0 bg-white p-2">
+    <header className="sticky bottom-full z-10 flex w-full items-center justify-center gap-1 rounded-b-xl border-t-0 bg-white p-2">
       <Link href="/" className="flex items-center">
         <motion.button whileHover={{ scale: 1.1 }} whileTap={{ scale: 0.9 }}>
           <svg

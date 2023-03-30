@@ -12,6 +12,7 @@ type Props = {
   technologies: Technology[];
   admin?: boolean;
   onDelete: () => void;
+  onEdit: () => void;
 };
 
 export default function Work({
@@ -21,6 +22,7 @@ export default function Work({
   technologies,
   admin,
   onDelete,
+  onEdit,
 }: Props) {
   const [modal, toggleModal] = useState(false);
   return (
@@ -81,7 +83,8 @@ export default function Work({
         <div className="absolute right-0 top-0 flex flex-row justify-between gap-1 p-2">
           <motion.button
             whileHover={{ scale: 1.25 }}
-            className="rounded-full bg-blue-600 p-1"
+            onClick={() => onEdit()}
+            className="rounded-full border border-black/25 bg-white p-1"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -89,7 +92,7 @@ export default function Work({
               viewBox="0 0 24 24"
               strokeWidth={1.5}
               stroke="currentColor"
-              className="h-4 w-4 text-white"
+              className="h-4 w-4 text-black"
             >
               <path
                 strokeLinecap="round"
@@ -101,7 +104,7 @@ export default function Work({
           <motion.button
             whileHover={{ scale: 1.25 }}
             onClick={() => toggleModal(true)}
-            className="rounded-full bg-red-600 p-1"
+            className="rounded-full border border-black/25 bg-white p-1"
           >
             <svg
               xmlns="http://www.w3.org/2000/svg"
@@ -109,7 +112,7 @@ export default function Work({
               viewBox="0 0 24 24"
               strokeWidth={2}
               stroke="currentColor"
-              className="h-4 w-4 text-white"
+              className="h-4 w-4 text-black"
             >
               <path
                 strokeLinecap="round"
