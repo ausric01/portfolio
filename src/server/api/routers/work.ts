@@ -100,4 +100,37 @@ export const workRouter = createTRPCRouter({
         };
       }
     }),
+  delete: publicProcedure
+    .input(
+      z.object({
+        id: z.string().cuid(),
+      })
+    )
+    .mutation(async ({ input, ctx }) => {
+      const { id } = input;
+      try {
+        const work = await ctx.prisma.work.delete({
+          where: {
+            id,
+          },
+        });
+        if (work) {
+          fs.unlinkSync(`./public/work/${work.image ?? ""}`);
+          return {
+            work,
+            error: null,
+          };
+        } else {
+          return {
+            work: null,
+            error: "Work not found",
+          };
+        }
+      } catch (e: any) {
+        return {
+          work: null,
+          error: e.message,
+        };
+      }
+    }),
 });

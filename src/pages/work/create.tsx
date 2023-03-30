@@ -97,12 +97,10 @@ export default function CreateWork({
       e.file = "Image is required";
     }
     if (
-      !(
-        form.file?.type == "image/png" ||
-        form.file?.type == "image/jpeg" ||
-        form.file?.type == "image/jpg" ||
-        form.file?.type == "image/webp"
-      )
+      form.file?.type != "image/png" &&
+      form.file?.type != "image/jpeg" &&
+      form.file?.type != "image/webp" &&
+      form.file?.type != "image/jpg"
     ) {
       e.file = "Image must be of type PNG, JPG/JPEG or WEBP";
     }
