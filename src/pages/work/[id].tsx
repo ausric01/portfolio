@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 /* eslint-disable @typescript-eslint/no-unsafe-call */
@@ -10,7 +11,7 @@ import Wrapper from "~/components/containers/Wrapper";
 import Header from "~/components/containers/Header";
 import { api } from "~/utils/api";
 import { getServerAuthSession } from "~/server/auth";
-import { Role, Technology, Work } from "@prisma/client";
+import { Role, type Technology, type Work } from "@prisma/client";
 import { type Session } from "next-auth";
 import { type NextPage } from "next";
 import Footer from "~/components/containers/Footer";
@@ -20,12 +21,13 @@ import { useAutoAnimate } from "@formkit/auto-animate/react";
 import classNames from "classnames";
 import { useRouter } from "next/router";
 import { createAPIContext } from "~/server/api/root";
+import Image from "next/image";
 
 type FormData = {
   title: string;
   description: string;
   technologies: string[];
-  file: File | null;
+  file: File | string | null;
 };
 
 function getBase64(file: File) {
@@ -42,17 +44,19 @@ export default function EditWork({
   work,
 }: NextPage & {
   user: Session["user"];
-  work: any;
+  work: Work & {
+    technologies: Technology[];
+  };
 }) {
   const { data: tech } = api.technologies.get.useQuery({});
   const [parent, _] = useAutoAnimate();
   const router = useRouter();
 
   const [form, setForm] = useState<FormData>({
-    title: work.work.title,
-    description: work.work.description ?? "",
-    technologies: work.work.technologies?.map((i) => i.id) ?? [],
-    file: null,
+    title: work?.title,
+    description: work?.description ?? "",
+    technologies: work?.technologies?.map((i: any) => i.id) ?? [],
+    file: work?.image ?? null,
   });
 
   const { mutate } = api.work.insert.useMutation();
@@ -100,6 +104,7 @@ export default function EditWork({
       e.file = "Image is required";
     }
     if (
+      typeof form.file !== "string" &&
       form.file?.type != "image/png" &&
       form.file?.type != "image/jpeg" &&
       form.file?.type != "image/webp" &&
@@ -292,7 +297,7 @@ export default function EditWork({
             </div>
             <div className="-mx-3 flex flex-wrap">
               <div className="flex w-full flex-col items-end px-3">
-                {form.file == null && (
+                {form.file == null && typeof form.file !== "string" && (
                   <>
                     {errors.file && (
                       <span className="text-xs text-red-600">
@@ -331,7 +336,7 @@ export default function EditWork({
                     </div>
                   </>
                 )}
-                {form.file && (
+                {form.file && typeof form.file !== "string" && (
                   <div className="mt-2 flex w-full flex-row items-center justify-between gap-2 rounded bg-gray-200 p-2 px-4">
                     <p>
                       {
@@ -356,6 +361,39 @@ export default function EditWork({
                     >
                       Remove
                     </button>
+                  </div>
+                )}
+                {typeof form.file == "string" && (
+                  <div className="relative flex w-full items-center gap-2 bg-gray-200 p-1">
+                    <Image
+                      src={`/work/${form.file}`}
+                      width={250}
+                      height={250}
+                      alt={form.file}
+                    />
+
+                    <svg
+                      onClick={() => {
+                        setForm((e) => {
+                          return {
+                            ...e,
+                            file: null,
+                          };
+                        });
+                      }}
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      strokeWidth={3}
+                      stroke="currentColor"
+                      className="absolute right-1 top-1 h-6 w-6 cursor-pointer p-1 text-red-400"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M6 18L18 6M6 6l12 12"
+                      />
+                    </svg>
                   </div>
                 )}
               </div>
@@ -387,25 +425,24 @@ export async function getServerSideProps({ req, res, query }: any) {
   }
 
   if (s !== null) {
-    //fetch Work with router id
     const { id } = query;
     const api = createAPIContext({
       ctx: s,
     });
-    const work = await api.work.getOne({
+    const res = await api.work.getOne({
       id,
     });
-    if (work) {
+    if (res.work) {
       return {
         props: {
           user: s.user,
-          work,
+          work: res.work,
         },
       };
     } else {
       return {
         redirect: {
-          destination: "/",
+          destination: `/?type=error&message=${res.error as string}`,
           permanent: false,
         },
       };

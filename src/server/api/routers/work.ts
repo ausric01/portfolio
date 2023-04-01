@@ -15,7 +15,7 @@ export const workRouter = createTRPCRouter({
   getOne: publicProcedure
     .input(
       z.object({
-        id: z.string().cuid().optional(),
+        id: z.string(),
       })
     )
     .query(async ({ ctx, input }) => {

@@ -1,8 +1,11 @@
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-member-access */
 /* eslint-disable react-hooks/rules-of-hooks */
 /* eslint-disable @typescript-eslint/no-unsafe-assignment */
 /* eslint-disable @typescript-eslint/ban-ts-comment */
 import { useTimeout } from "~/utils/hooks";
 import { AnimatePresence, motion } from "framer-motion";
+import { useRouter } from "next/router";
 
 type FeedbackModalProps = {
   type: "success" | "error";
@@ -10,12 +13,19 @@ type FeedbackModalProps = {
 };
 
 function FeedbackModal({ type, message }: FeedbackModalProps) {
+  const router = useRouter();
   const { executed: hidden, toggle } = useTimeout({
     time: 5000,
     callback: () => {
       toggle();
     },
   });
+  if (hidden) {
+    //get the local URI
+    const localURI = router.asPath?.split("?")[0];
+    void router.push(localURI ?? "/");
+    return null;
+  }
   return type == "error" ? (
     <AnimatePresence>
       {!hidden && (
