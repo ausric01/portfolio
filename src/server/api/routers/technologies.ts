@@ -39,4 +39,68 @@ export const technologiesRouter = createTRPCRouter({
         };
       }
     }),
+  insert: publicProcedure
+    .input(
+      z.object({
+        name: z.string(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { name } = input;
+      try {
+        const technology = await ctx.prisma.technology.create({
+          data: {
+            name,
+          },
+        });
+        if (technology) {
+          return {
+            technology,
+            error: null,
+          };
+        } else {
+          return {
+            technology: null,
+            error: "Technology failed to create",
+          };
+        }
+      } catch (e: any) {
+        return {
+          technology: null,
+          error: e.message,
+        };
+      }
+    }),
+  delete: publicProcedure
+    .input(
+      z.object({
+        id: z.string().cuid(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const { id } = input;
+      try {
+        const technology = await ctx.prisma.technology.delete({
+          where: {
+            id,
+          },
+        });
+        if (technology) {
+          return {
+            technology,
+            error: null,
+          };
+        } else {
+          return {
+            technology: null,
+            error: "Failed to delete technology",
+          };
+        }
+      } catch (e: any) {
+        return {
+          technology: null,
+          error: e.message,
+        };
+      }
+    }),
 });

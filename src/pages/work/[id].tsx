@@ -59,7 +59,7 @@ export default function EditWork({
     file: work?.image ?? null,
   });
 
-  const { mutate } = api.work.insert.useMutation();
+  const { mutate } = api.work.edit.useMutation();
 
   const [errors, setErrors] = useState<{
     title: string;
@@ -133,29 +133,58 @@ export default function EditWork({
               });
               if (validateForm()) {
                 //@ts-ignore
-                void getBase64(form.file).then((e) => {
-                  mutate(
-                    {
-                      title: form.title,
-                      description: form.description,
-                      technologies: form.technologies,
-                      fileName: form.file?.name ?? "",
-                      base64String: e as string,
-                    },
-                    {
-                      onSuccess: (e: any) => {
-                        void router.push(
-                          `/?type=success&message=Successfully created new Work`
-                        );
+                if (typeof form.file !== "string") {
+                  //if new image
+                  form.file !== null &&
+                    void getBase64(form.file).then((e) => {
+                      mutate(
+                        {
+                          id: work.id,
+                          title: form.title,
+                          description: form.description,
+                          technologies: form.technologies,
+                          //@ts-ignore
+                          fileName: form.file?.name ?? "",
+                          base64String: e as string,
+                        },
+                        {
+                          onSuccess: (e: any) => {
+                            void router.push(
+                              `/?type=success&message=Successfully created new Work`
+                            );
+                          },
+                          onError: (e: any) => {
+                            void router.push(
+                              `/?type=error&message=Error creating new Work`
+                            );
+                          },
+                        }
+                      );
+                    });
+                } else {
+                  form.file !== null &&
+                    mutate(
+                      {
+                        id: work.id,
+                        title: form.title,
+                        description: form.description,
+                        technologies: form.technologies,
+                        filePath: form.file,
                       },
-                      onError: (e: any) => {
-                        void router.push(
-                          `/?type=error&message=Error creating new Work`
-                        );
-                      },
-                    }
-                  );
-                });
+                      {
+                        onSuccess: (e: any) => {
+                          void router.push(
+                            `/?type=success&message=Successfully created new Work`
+                          );
+                        },
+                        onError: (e: any) => {
+                          void router.push(
+                            `/?type=error&message=Error creating new Work`
+                          );
+                        },
+                      }
+                    );
+                }
               }
             }}
             className="w-full max-w-lg rounded bg-slate-800 p-6 px-8"
@@ -364,7 +393,7 @@ export default function EditWork({
                   </div>
                 )}
                 {typeof form.file == "string" && (
-                  <div className="relative flex w-full items-center gap-2 bg-gray-200 p-1">
+                  <div className="relative flex w-full items-center gap-2 rounded bg-gray-200 p-1">
                     <Image
                       src={`/work/${form.file}`}
                       width={250}
@@ -399,7 +428,7 @@ export default function EditWork({
               </div>
             </div>
             <button className="mt-6 w-full rounded bg-blue-600 p-3 uppercase tracking-wide text-white outline-none transition-colors hover:bg-blue-800">
-              Create
+              Edit
             </button>
           </form>
           <Footer user={user} />

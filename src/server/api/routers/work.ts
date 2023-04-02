@@ -168,4 +168,93 @@ export const workRouter = createTRPCRouter({
         };
       }
     }),
+  edit: publicProcedure
+    .input(
+      z.object({
+        id: z.string().cuid(),
+        title: z.string(),
+        description: z.string(),
+        technologies: z.array(z.string().cuid()),
+        filePath: z.string().optional(),
+        fileName: z.string().optional(),
+        base64String: z.string().optional(),
+      })
+    )
+    .mutation(async ({ ctx, input }) => {
+      const {
+        id,
+        title,
+        description,
+        technologies,
+        filePath,
+        fileName,
+        base64String,
+      } = input;
+
+      try {
+        //If the Image exists update the other fields, else update everything
+        //including adding the image to the public/work folder
+        if (filePath) {
+          const work = await ctx.prisma.work.update({
+            where: {
+              id,
+            },
+            data: {
+              title,
+              description,
+              technologies: {
+                connect: technologies.map((id) => ({ id })),
+              },
+              image: filePath,
+            },
+          });
+          if (work) {
+            return {
+              work,
+              error: null,
+            };
+          }
+          return {
+            work: null,
+            error: "Error updating Work",
+          };
+        } else if (base64String && fileName) {
+          const base64Data = base64String.replace(
+            /^data:image\/(png|jpg|jpeg);base64,/,
+            ""
+          );
+          const buffer = Buffer.from(base64Data, "base64");
+          fs.writeFileSync(`./public/work/${fileName}`, buffer);
+
+          const work = await ctx.prisma.work.update({
+            where: {
+              id,
+            },
+            data: {
+              title,
+              description,
+              technologies: {
+                connect: technologies.map((id) => ({ id })),
+              },
+              image: fileName,
+            },
+          });
+          if (work) {
+            return {
+              work,
+              error: null,
+            };
+          }
+          return {
+            work: null,
+            error: "Error updating Work",
+          };
+        } else {
+          return {
+            work: null,
+            error: "Invalid input parameters",
+          };
+        }
+      } catch (e: any) {}
+    }),
 });
